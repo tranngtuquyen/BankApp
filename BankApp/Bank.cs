@@ -8,6 +8,7 @@ namespace BankApp
     static class Bank
     {
         private static List<Account> accounts = new List<Account>();
+        private static List<Transaction> transactions = new List<Transaction>();
 
         /// <summary>
         /// Creates an account in the bank
@@ -29,6 +30,7 @@ namespace BankApp
             if (initialDeposit > 0)
             {
                 account.Deposit(initialDeposit);
+                CreateTransaction(initialDeposit, account.AccountNumber, TypeOfTransaction.Credit, "Initial Deposit");
             }
 
             accounts.Add(account);
@@ -38,7 +40,51 @@ namespace BankApp
 
         public static void Deposit(int accountNumber, decimal amount)
         {
-            var account = accounts.Where<Account>(a => a.AccountNumber == accountNumber);
+            var account = accounts.SingleOrDefault(a => a.AccountNumber == accountNumber);
+            if (account == null)
+            {
+                //Exception handling here
+                return;
+            }
+
+            account.Deposit(amount);
+            CreateTransaction(amount, accountNumber, TypeOfTransaction.Credit, "Bank Deposit");
+        }
+
+        public static void Withdraw(int accountNumber, decimal amount)
+        {
+            var account = accounts.SingleOrDefault(a => a.AccountNumber == accountNumber);
+            if (account == null)
+            {
+                //Exception handling here
+                return;
+            }
+
+            account.Withdraw(amount);
+            CreateTransaction(amount, accountNumber, TypeOfTransaction.Debit, "Bank Withdraw");
+        }
+
+        public static IEnumerable<Account> GetAllAccountsByEmailAddress(string emailAddress)
+        {
+            return accounts.Where(a => a.EmailAddress == emailAddress);
+        }
+
+        public static IEnumerable<Transaction> GetAllTransactionsByAccountNumber(int accountNumber)
+        {
+            return transactions.Where(t => t.AccountNumber == accountNumber).OrderByDescending(t => t.TransactionDate);
+        }
+
+        private static void CreateTransaction(decimal amount, int accountNumber, TypeOfTransaction transactionType, string description = "")
+        {
+            var transaction = new Transaction
+            {
+                TransactionDate = DateTime.UtcNow,
+                Amount = amount,
+                AccountNumber = accountNumber,
+                TransactionType = transactionType,
+                Description = description
+            };
+            transactions.Add(transaction);
         }
     }
 }
