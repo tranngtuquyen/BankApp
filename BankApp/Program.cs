@@ -64,14 +64,37 @@ namespace BankApp
                         break;
                     case "3":
                         PrintAllAccounts();
-                        Console.Write("Account Number: ");
-                        accountNumber = Convert.ToInt32(Console.ReadLine());
+                        try
+                        {
+                            Console.Write("Account Number: ");
+                            accountNumber = Convert.ToInt32(Console.ReadLine());
 
-                        Console.Write("Amount to withdraw: ");
-                        amount = Convert.ToDecimal(Console.ReadLine());
+                            Console.Write("Amount to withdraw: ");
+                            amount = Convert.ToDecimal(Console.ReadLine());
 
-                        Bank.Withdraw(accountNumber, amount);
-                        Console.WriteLine("Withdraw completed!");
+                            Bank.Withdraw(accountNumber, amount);
+                            Console.WriteLine("Withdraw completed!");
+                        }
+                        catch(FormatException)
+                        {
+                            Console.WriteLine("Either the account number or amount is invalid!");
+                        }
+                        catch(OverflowException)
+                        {
+                            Console.WriteLine("Amount or account number is invalid!");
+                        }
+                        catch (ArgumentOutOfRangeException ax)
+                        {
+                            Console.WriteLine($"{ax.Message}");
+                        }
+                        catch (ArgumentException ax)
+                        {
+                            Console.WriteLine($"{ax.Message}");
+                        }
+                        catch(Exception)
+                        {
+                            Console.WriteLine("Something went wrong!");
+                        }
                         break;
                     case "4":
                         PrintAllAccounts();
