@@ -7,13 +7,49 @@ namespace BankApp
 {
     class BankContext : DbContext
     {
+        public DbSet<Account> Accounts { get; set; }
+        public DbSet<Transaction> Transactions { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            base.OnConfiguring(optionsBuilder);
+            optionsBuilder.UseSqlServer(@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=BankDbJan20;Integrated Security=True;Connect Timeout=30");
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Account>(entity =>
+            {
+                entity.ToTable("Accounts");
+                entity.HasKey(e => e.AccountNumber)
+                    .HasName("PK_Accounts");
+
+                entity.Property(e => e.AccountNumber)
+                    .ValueGeneratedOnAdd();
+
+                entity.Property(e => e.EmailAddress)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.AccountType)
+                    .IsRequired();
+            });
+
+            modelBuilder.Entity<Transaction>(entity =>
+            {
+                entity.ToTable("Transactions");
+
+                entity.HasKey(e => e.TransactionID)
+                    .HasName("PK_Transactions");
+
+                entity.Property(e => e.TransactionID)
+                    .ValueGeneratedOnAdd();
+
+                entity.Property(e => e.Amount)
+                    .IsRequired();
+
+                entity.HasOne(e => e.Account)
+                    .WithMany()
+                    .HasForeignKey(e => e.AccountNumber);
+            });
         }
     }
 }
