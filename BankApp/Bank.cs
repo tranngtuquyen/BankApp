@@ -40,11 +40,7 @@ namespace BankApp
 
         public static void Deposit(int accountNumber, decimal amount)
         {
-            var account = db.Accounts.SingleOrDefault(a => a.AccountNumber == accountNumber);
-            if (account == null)
-            {
-                throw new ArgumentException("Invalid account number. Try again!");
-            }
+            var account = GetAccountByAccountNumber(accountNumber);
 
             account.Deposit(amount);
             CreateTransaction(amount, accountNumber, TypeOfTransaction.Credit, "Bank Deposit");
@@ -59,14 +55,23 @@ namespace BankApp
         /// <exception cref="ArgumentException" />
         public static void Withdraw(int accountNumber, decimal amount)
         {
-            var account = db.Accounts.SingleOrDefault(a => a.AccountNumber == accountNumber);
-            if (account == null)
-            {
-                throw new ArgumentException("Invalid account number. Try again!");
-            }
+            var account = GetAccountByAccountNumber(accountNumber);
 
             account.Withdraw(amount);
             CreateTransaction(amount, accountNumber, TypeOfTransaction.Debit, "Bank Withdraw");
+            db.SaveChanges();
+        }
+        public static Account GetAccountByAccountNumber(int accountNumber)
+        {
+            return db.Accounts.SingleOrDefault(a => a.AccountNumber == accountNumber);
+        }
+        public static void Update(Account updatedAccount)
+        {
+            var oldAccount = GetAccountByAccountNumber(updatedAccount.AccountNumber);
+            oldAccount.AccountName = updatedAccount.AccountName;
+            oldAccount.AccountType = updatedAccount.AccountType;
+            oldAccount.EmailAddress = updatedAccount.EmailAddress;
+
             db.SaveChanges();
         }
 
