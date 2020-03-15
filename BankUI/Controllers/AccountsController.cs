@@ -7,27 +7,21 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BankApp;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace BankUI.Controllers
 {
     [Authorize]
     public class AccountsController : Controller
     {
-        private readonly BankContext _context;
-
-        public AccountsController(BankContext context)
-        {
-            _context = context;
-        }
-
         // GET: Accounts
-        public async Task<IActionResult> Index()
+        public  IActionResult Index()
         {
             return View(Bank.GetAllAccountsByEmailAddress(HttpContext.User.Identity.Name));
         }
 
         // GET: Accounts/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int? id)
         {
             if (id == null)
             {
@@ -54,7 +48,7 @@ namespace BankUI.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(
+        public IActionResult Create(
             [Bind("AccountName,AccountType,EmailAddress")] 
         Account account)
         {
@@ -67,7 +61,7 @@ namespace BankUI.Controllers
         }
 
         // GET: Accounts/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int? id)
         {
             if (id == null)
             {
@@ -87,7 +81,7 @@ namespace BankUI.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("AccountNumber,AccountName,AccountType,Balance,EmailAddress,CreatedDate")] Account account)
+        public IActionResult Edit(int id, [Bind("AccountNumber,AccountName,AccountType,Balance,EmailAddress,CreatedDate")] Account account)
         {
             if (id != account.AccountNumber)
             {
@@ -102,38 +96,51 @@ namespace BankUI.Controllers
             return View(account);
         }
 
-        // GET: Accounts/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Deposit(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
+            var account = Bank.GetAccountByAccountNumber(id.Value);
 
-            var account = await _context.Accounts
-                .FirstOrDefaultAsync(m => m.AccountNumber == id);
             if (account == null)
             {
                 return NotFound();
             }
-
             return View(account);
         }
 
-        // POST: Accounts/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        [HttpPost]
+        public IActionResult Deposit(IFormCollection controls)
         {
-            var account = await _context.Accounts.FindAsync(id);
-            _context.Accounts.Remove(account);
-            await _context.SaveChangesAsync();
+            var accountNumber = Convert.ToInt32(controls["AccountNumber"]);
+            var amount = Convert.ToDecimal(controls["amount"]);
+
+            Bank.Deposit(accountNumber, amount);
             return RedirectToAction(nameof(Index));
         }
 
-        private bool AccountExists(int id)
+        public IActionResult Withdraw(int? id)
         {
-            return _context.Accounts.Any(e => e.AccountNumber == id);
+            var account = Bank.GetAccountByAccountNumber(id.Value);
+            return View(account);
+        }
+
+        [HttpPost]
+        public IActionResult Withdraw(IFormCollection controls)
+        {
+            var accountNumber = Convert.ToInt32(controls["AccountNumber"]);
+            var amount = Convert.ToDecimal(controls["amount"]);
+
+            Bank.Withdraw(accountNumber, amount);
+            return RedirectToAction(nameof(Index));
+        }
+
+        public IActionResult Transactions(int? id)
+        {
+            var transactions = Bank.GetAllTransactionsByAccountNumber(id.Value);
+            return View(transactions);
         }
     }
 }
